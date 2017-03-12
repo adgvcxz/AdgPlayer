@@ -8,10 +8,13 @@ import android.util.AttributeSet
 import android.view.Surface
 import android.view.TextureView
 import android.widget.RelativeLayout
-import android.widget.RelativeLayout.LayoutParams
 import com.adgvcxz.adgplayer.AdgMediaPlayerManager
+import com.adgvcxz.adgplayer.PlayerStatus
+import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
 import tv.danmaku.ijk.media.player.IMediaPlayer
 import java.lang.ref.WeakReference
+import java.util.concurrent.TimeUnit
 
 /**
  * zhaowei
@@ -21,6 +24,20 @@ import java.lang.ref.WeakReference
 class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener, IMediaPlayer.OnVideoSizeChangedListener {
 
     private var textureView: AdgTextureView? = null
+    var currentPosition: Long = 0
+    var status = PlayerStatus.Init
+
+    private val disposables: CompositeDisposable by lazy {
+        CompositeDisposable()
+    }
+    val progressObservable: Observable<Long> by lazy {
+        Observable.interval(350, TimeUnit.MILLISECONDS)
+                .filter { status == PlayerStatus.Playing }
+                .map { AdgMediaPlayerManager.instance.currentPosition }
+                .takeWhile {AdgMediaPlayerManager.instance.duration > 0 && it < AdgMediaPlayerManager.instance.duration}
+                .filter { currentPosition != it }
+                .doOnNext { currentPosition = it }
+    }
 
     constructor(context: Context) : super(context) {
         init(context)
@@ -49,6 +66,7 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener, IMediaP
     }
 
     fun start(url: String) {
+        status = PlayerStatus.Preparing
         AdgMediaPlayerManager.instance.start(context, url)
     }
 
@@ -72,5 +90,25 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener, IMediaP
 
     override fun onVideoSizeChanged(p0: IMediaPlayer?, p1: Int, p2: Int, p3: Int, p4: Int) {
         textureView?.requestLayout()
+    }
+
+    fun pause() {
+        status = PlayerStatus.Pause
+        AdgMediaPlayerManager.instance.pause()
+    }
+
+    fun start() {
+        status = PlayerStatus.Playing
+        AdgMediaPlayerManager.instance.start()
+    }
+
+    fun isPlaying(): Boolean = AdgMediaPlayerManager.instance.isPlaying
+
+    fun seekTo(progress: Int) = AdgMediaPlayerManager.instance.seekTo(AdgMediaPlayerManager.instance.duration * progress / 100)
+
+
+    fun onDestroy() {
+        status = PlayerStatus.Release
+        AdgMediaPlayerManager.instance.release()
     }
 }

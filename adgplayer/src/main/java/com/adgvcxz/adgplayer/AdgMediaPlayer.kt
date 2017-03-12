@@ -12,8 +12,8 @@ import java.lang.ref.WeakReference
  * zhaowei
  * Created by zhaowei on 2017/3/10.
  */
-class AdgMediaPlayer(private val mediaPlayer: IMediaPlayer): IMediaPlayer by mediaPlayer
-        , IMediaPlayer.OnVideoSizeChangedListener {
+class AdgMediaPlayer(private val mediaPlayer: IMediaPlayer) : IMediaPlayer by mediaPlayer
+        , IMediaPlayer.OnVideoSizeChangedListener, IMediaPlayer.OnBufferingUpdateListener, IMediaPlayer.OnInfoListener, IMediaPlayer.OnPreparedListener {
 
     var onSizeChangeListener: WeakReference<IMediaPlayer.OnVideoSizeChangedListener>? = null
 
@@ -22,6 +22,10 @@ class AdgMediaPlayer(private val mediaPlayer: IMediaPlayer): IMediaPlayer by med
         //播放时，屏幕保持常亮
         mediaPlayer.setScreenOnWhilePlaying(true)
         mediaPlayer.setOnVideoSizeChangedListener(this)
+        mediaPlayer.setOnBufferingUpdateListener(this)
+        mediaPlayer.setOnInfoListener(this)
+        mediaPlayer.setOnPreparedListener(this)
+
         if (mediaPlayer is IjkMediaPlayer) {
             //启用硬编码
             mediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1)
@@ -40,6 +44,18 @@ class AdgMediaPlayer(private val mediaPlayer: IMediaPlayer): IMediaPlayer by med
     override fun onVideoSizeChanged(player: IMediaPlayer?, width: Int, height: Int, sar_num: Int, sar_den: Int) {
         //http://www.cnblogs.com/yinxiangpei/articles/3949041.html
         onSizeChangeListener?.get()?.onVideoSizeChanged(player, width, height, sar_num, sar_den)
-        Log.e("zhaow", "$width    $height   $sar_num   $sar_den    ${mediaPlayer.videoWidth}   ${mediaPlayer.videoHeight}     ${onSizeChangeListener?.get()}")
+    }
+
+    override fun onBufferingUpdate(player: IMediaPlayer?, percent: Int) {
+        Log.e("zhaow", "onBufferingUpdate        $percent")
+    }
+
+    override fun onInfo(player: IMediaPlayer?, what: Int, extra: Int): Boolean {
+        Log.e("zhaow", "onInfo   $what    $extra")
+        return false
+    }
+
+    override fun onPrepared(player: IMediaPlayer?) {
+        Log.e("zhaow", "onPrepared")
     }
 }
