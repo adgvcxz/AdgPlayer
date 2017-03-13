@@ -13,15 +13,12 @@ import java.lang.ref.WeakReference
  * Created by zhaowei on 2017/3/10.
  */
 class AdgMediaPlayer(private val mediaPlayer: IMediaPlayer) : IMediaPlayer by mediaPlayer
-        , IMediaPlayer.OnVideoSizeChangedListener, IMediaPlayer.OnBufferingUpdateListener, IMediaPlayer.OnInfoListener, IMediaPlayer.OnPreparedListener {
-
-    var onSizeChangeListener: WeakReference<IMediaPlayer.OnVideoSizeChangedListener>? = null
+        , IMediaPlayer.OnBufferingUpdateListener, IMediaPlayer.OnInfoListener, IMediaPlayer.OnPreparedListener {
 
     init {
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
         //播放时，屏幕保持常亮
         mediaPlayer.setScreenOnWhilePlaying(true)
-        mediaPlayer.setOnVideoSizeChangedListener(this)
         mediaPlayer.setOnBufferingUpdateListener(this)
         mediaPlayer.setOnInfoListener(this)
         mediaPlayer.setOnPreparedListener(this)
@@ -40,11 +37,6 @@ class AdgMediaPlayer(private val mediaPlayer: IMediaPlayer) : IMediaPlayer by me
         mediaPlayer.start()
     }
 
-
-    override fun onVideoSizeChanged(player: IMediaPlayer?, width: Int, height: Int, sar_num: Int, sar_den: Int) {
-        //http://www.cnblogs.com/yinxiangpei/articles/3949041.html
-        onSizeChangeListener?.get()?.onVideoSizeChanged(player, width, height, sar_num, sar_den)
-    }
 
     override fun onBufferingUpdate(player: IMediaPlayer?, percent: Int) {
         Log.e("zhaow", "onBufferingUpdate        $percent")
