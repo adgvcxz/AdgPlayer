@@ -9,6 +9,8 @@ import android.widget.SeekBar
 import android.widget.TextView
 import com.adgvcxz.adgplayer.PlayerStatus
 import com.adgvcxz.adgplayer.widget.AdgVideoView
+import io.reactivex.Observable
+import java.util.concurrent.TimeUnit
 
 /**
  * zhaowei
@@ -25,6 +27,7 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         videoView = findViewById(R.id.video_view) as AdgVideoView
         val start = findViewById(R.id.start) as Button
         val seekBar = findViewById(R.id.seek_bar) as SeekBar
+        val brightness = findViewById(R.id.brightness) as SeekBar
         val time = findViewById(R.id.time) as TextView
         val progressBar = findViewById(R.id.progress_bar)
         start.setOnClickListener {
@@ -38,17 +41,16 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         }
 
         findViewById(R.id.mute).setOnClickListener {
-//            if (videoView.volume == 1F) {
-//                videoView.volume = 0F
-//            } else {
-//                videoView.volume = 1F
-//            }
-            videoView.seekTo(124562)
+            if (videoView.volume == 1F) {
+                videoView.volume = 0F
+            } else {
+                videoView.volume = 1F
+            }
         }
 
         seekBar.setOnSeekBarChangeListener(this)
+        brightness.setOnSeekBarChangeListener(this)
         videoView.progressListener = {
-            Log.e("zhaow", "progress ${it.progress}")
             seekBar.progress = (it.progress.toDouble() / it.duration * 100).toInt()
             time.text = "${it.progress / 1000}s / ${videoView.duration / 1000}s"
         }
@@ -70,19 +72,30 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
         }
 
         videoView.start("http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4")
+        brightness.progress = (videoView.brightness * 100).toInt()
+        Observable.timer(1, TimeUnit.SECONDS).subscribe {
+            Log.e("zhaow", "${videoView.brightness}")
+        }
+
     }
 
 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
     }
 
-    override fun onStartTrackingTouch(seekBar: SeekBar?) {
+    override fun onStartTrackingTouch(seekBar: SeekBar) {
+        when(seekBar.id) {
+            R.id.brightness -> videoView.brightness = seekBar.progress.toFloat() / 100
+            R.id.progress_bar -> videoView.seekTo(seekBar.progress)
+        }
     }
 
-    override fun onStopTrackingTouch(seekBar: SeekBar?) {
-        Log.e("zhaow", "abcd ${seekBar!!.progress}")
-        videoView.seekTo(seekBar.progress)
-        Log.e("zhaow", "zhaow")
+    override fun onStopTrackingTouch(seekBar: SeekBar) {
+        when(seekBar.id) {
+            R.id.brightness -> videoView.brightness = seekBar.progress.toFloat() / 100
+            R.id.progress_bar -> videoView.seekTo(seekBar.progress)
+        }
+
     }
 
     override fun onDestroy() {

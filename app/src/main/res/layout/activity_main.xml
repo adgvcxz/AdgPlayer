@@ -9,6 +9,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <SeekBar
+            android:id="@+id/brightness"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <com.adgvcxz.adgplayer.widget.AdgVideoView
             android:id="@+id/video_view"
             android:layout_width="match_parent"

@@ -1,6 +1,7 @@
 package com.adgvcxz.adgplayer.widget
 
 import android.annotation.TargetApi
+import android.app.Activity
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.os.Build
@@ -42,6 +43,31 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
                 field = value
                 AdgMediaPlayerManager.instance.setVolume(value, value)
             }
+        }
+
+    var brightness: Float
+        set(value) {
+            if (context is Activity) {
+                Log.e("zhaow", "==========")
+                val lp = (context as Activity).window.attributes
+                lp.screenBrightness = value
+                if (lp.screenBrightness > 1) {
+                    lp.screenBrightness = 1F
+                } else if (lp.screenBrightness < 0.01) {
+                    lp.screenBrightness = 0.01F
+                }
+                (context as Activity).window.attributes = lp
+            }
+        }
+        get() {
+            var value = 0.5F
+            if (context is Activity) {
+                 value = (context as Activity).window.attributes.buttonBrightness
+            }
+            if (value < 0) {
+                return 0.5F
+            }
+            return value
         }
 
     private var status = PlayerStatus.Init
@@ -88,7 +114,7 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
         AdgMediaPlayerManager.instance.videoInfoRx()
                 .takeWhile { status != PlayerStatus.Destroy }
                 .subscribe {
-                    when(it.what) {
+                    when (it.what) {
                         IMediaPlayer.MEDIA_INFO_BUFFERING_START -> status = PlayerStatus.Buffering
                         IMediaPlayer.MEDIA_INFO_BUFFERING_END -> status = PlayerStatus.Playing
                     }
