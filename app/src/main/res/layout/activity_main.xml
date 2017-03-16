@@ -14,6 +14,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <Button
+            android:id="@+id/horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/brightness"
+            android:text="横竖屏" />
+
         <com.adgvcxz.adgplayer.widget.AdgVideoView
             android:id="@+id/video_view"
             android:layout_width="match_parent"

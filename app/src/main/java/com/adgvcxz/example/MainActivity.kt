@@ -2,15 +2,13 @@ package com.adgvcxz.example
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
 import com.adgvcxz.adgplayer.PlayerStatus
+import com.adgvcxz.adgplayer.ScreenOrientation
 import com.adgvcxz.adgplayer.widget.AdgVideoView
-import io.reactivex.Observable
-import java.util.concurrent.TimeUnit
 
 /**
  * zhaowei
@@ -48,6 +46,14 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             }
         }
 
+        findViewById(R.id.horizontal).setOnClickListener {
+            if (videoView.screenOrientation != ScreenOrientation.Portrait) {
+                videoView.screenOrientation = ScreenOrientation.Portrait
+            } else {
+                videoView.screenOrientation = ScreenOrientation.Landscape
+            }
+        }
+
         seekBar.setOnSeekBarChangeListener(this)
         brightness.setOnSeekBarChangeListener(this)
         videoView.progressListener = {
@@ -68,14 +74,10 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
             } else {
                 progressBar.visibility = View.GONE
             }
-            Log.e("zhaow", "status   ${it.name}")
         }
 
         videoView.start("http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4")
         brightness.progress = (videoView.brightness * 100).toInt()
-        Observable.timer(1, TimeUnit.SECONDS).subscribe {
-            Log.e("zhaow", "${videoView.brightness}")
-        }
 
     }
 
@@ -84,14 +86,14 @@ class MainActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
     }
 
     override fun onStartTrackingTouch(seekBar: SeekBar) {
-        when(seekBar.id) {
+        when (seekBar.id) {
             R.id.brightness -> videoView.brightness = seekBar.progress.toFloat() / 100
             R.id.progress_bar -> videoView.seekTo(seekBar.progress)
         }
     }
 
     override fun onStopTrackingTouch(seekBar: SeekBar) {
-        when(seekBar.id) {
+        when (seekBar.id) {
             R.id.brightness -> videoView.brightness = seekBar.progress.toFloat() / 100
             R.id.progress_bar -> videoView.seekTo(seekBar.progress)
         }

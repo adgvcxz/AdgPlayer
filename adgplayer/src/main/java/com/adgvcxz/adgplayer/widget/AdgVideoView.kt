@@ -12,11 +12,10 @@ import android.view.TextureView
 import android.widget.RelativeLayout
 import com.adgvcxz.adgplayer.AdgMediaPlayerManager
 import com.adgvcxz.adgplayer.PlayerStatus
+import com.adgvcxz.adgplayer.ScreenOrientation
 import com.adgvcxz.adgplayer.bean.VideoProgress
-import com.adgvcxz.adgplayer.extensions.videoBufferRx
-import com.adgvcxz.adgplayer.extensions.videoInfoRx
-import com.adgvcxz.adgplayer.extensions.videoPreparedRx
-import com.adgvcxz.adgplayer.extensions.videoSizeChangeRx
+import com.adgvcxz.adgplayer.extensions.*
+import com.adgvcxz.adgplayer.util.OrientationHelper
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import tv.danmaku.ijk.media.player.IMediaPlayer
@@ -48,7 +47,6 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
     var brightness: Float
         set(value) {
             if (context is Activity) {
-                Log.e("zhaow", "==========")
                 val lp = (context as Activity).window.attributes
                 lp.screenBrightness = value
                 if (lp.screenBrightness > 1) {
@@ -62,7 +60,7 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
         get() {
             var value = 0.5F
             if (context is Activity) {
-                 value = (context as Activity).window.attributes.buttonBrightness
+                value = (context as Activity).window.attributes.buttonBrightness
             }
             if (value < 0) {
                 return 0.5F
@@ -70,13 +68,33 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
             return value
         }
 
-    private var status = PlayerStatus.Init
-        set(value) {
+    var status = PlayerStatus.Init
+        private set(value) {
             field = value
             statusObservable.onNext(value)
             if (value == PlayerStatus.Playing) {
                 progressObservable.subscribe { progressListener?.invoke(it) }
             }
+        }
+
+    val statusObservable = status.rx()
+
+
+    var progressListener: ((VideoProgress) -> Unit)? = null
+    var bufferListener: ((Int) -> Unit)? = null
+    var orientationHelper: OrientationHelper? = null
+    var screenOrientation: ScreenOrientation
+        get() {
+            if (orientationHelper != null) {
+                return orientationHelper!!.screenOrientation
+            }
+            return (context as Activity).screenOrientation()
+        }
+        set(value) {
+            if (orientationHelper == null) {
+                orientationHelper = OrientationHelper(context as Activity)
+            }
+            orientationHelper?.rotateScreen(value)
         }
 
     private val progressObservable: Observable<VideoProgress> by lazy {
@@ -89,13 +107,10 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
                 .observeOn(AndroidSchedulers.mainThread())
     }
 
-    val statusObservable = status.rx()
-
-
-    var progressListener: ((VideoProgress) -> Unit)? = null
-    var bufferListener: ((Int) -> Unit)? = null
-
     init {
+
+        AdgMediaPlayerManager.instance.initPlayer()
+
         AdgMediaPlayerManager.instance.videoSizeChangeRx()
                 .takeWhile { status != PlayerStatus.Destroy }
                 .subscribe { textureView?.requestLayout() }
@@ -109,11 +124,15 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
 
         AdgMediaPlayerManager.instance.videoBufferRx()
                 .takeWhile { status != PlayerStatus.Destroy }
-                .subscribe { bufferListener?.invoke(it) }
+                .subscribe {
+                    Log.e("zhaow", "buffer   ${it}")
+                    bufferListener?.invoke(it)
+                }
 
         AdgMediaPlayerManager.instance.videoInfoRx()
                 .takeWhile { status != PlayerStatus.Destroy }
                 .subscribe {
+                    Log.e("zhaow", "info    ${it.what}")
                     when (it.what) {
                         IMediaPlayer.MEDIA_INFO_BUFFERING_START -> status = PlayerStatus.Buffering
                         IMediaPlayer.MEDIA_INFO_BUFFERING_END -> status = PlayerStatus.Playing
@@ -150,7 +169,7 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
 
     fun start(url: String) {
         status = PlayerStatus.Preparing
-        AdgMediaPlayerManager.instance.start(context, url)
+        AdgMediaPlayerManager.instance.prepare(context, url)
     }
 
 
@@ -196,5 +215,6 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
         AdgMediaPlayerManager.instance.release()
         status = PlayerStatus.Destroy
         statusObservable.onComplete()
+        orientationHelper?.onDestroy()
     }
 }
