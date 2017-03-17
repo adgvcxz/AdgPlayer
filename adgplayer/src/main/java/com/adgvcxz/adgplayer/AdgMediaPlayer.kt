@@ -3,38 +3,38 @@ package com.adgvcxz.adgplayer
 import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
-import android.util.Log
 import tv.danmaku.ijk.media.player.IMediaPlayer
 import tv.danmaku.ijk.media.player.IjkMediaPlayer
-import java.lang.ref.WeakReference
 
 /**
  * zhaowei
  * Created by zhaowei on 2017/3/10.
  */
-class AdgMediaPlayer(private var mediaPlayer: IMediaPlayer) : IMediaPlayer by mediaPlayer
-        , IMediaPlayer.OnBufferingUpdateListener, IMediaPlayer.OnInfoListener, IMediaPlayer.OnPreparedListener {
+class AdgMediaPlayer private constructor() {
 
-    var playable = true
-
-    init {
-        initOptions()
+    private object Holder {
+        val Instance = AdgMediaPlayer()
     }
+
+    companion object {
+        internal val instance: AdgMediaPlayer by lazy {
+            Holder.Instance
+        }
+    }
+
+    internal lateinit var mediaPlayer: IMediaPlayer
+
 
     fun prepare(context: Context, url: String) {
         initPlayer()
         mediaPlayer.setDataSource(context, Uri.parse(url))
-        playable = false
         mediaPlayer.prepareAsync()
         mediaPlayer.start()
     }
 
     fun initPlayer() {
-        if (!playable) {
-            mediaPlayer.release()
-            mediaPlayer = AdgMediaPlayerManager.generateMediaPlayer()
-            initOptions()
-        }
+        mediaPlayer = IjkMediaPlayer()
+        initOptions()
     }
 
     private fun initOptions() {
@@ -48,23 +48,5 @@ class AdgMediaPlayer(private var mediaPlayer: IMediaPlayer) : IMediaPlayer by me
             (mediaPlayer as IjkMediaPlayer).setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 1)
             (mediaPlayer as IjkMediaPlayer).setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 1)
         }
-    }
-
-    override fun release() {
-        mediaPlayer.release()
-        playable = false
-    }
-
-    override fun onBufferingUpdate(player: IMediaPlayer?, percent: Int) {
-        Log.e("zhaow", "onBufferingUpdate        $percent")
-    }
-
-    override fun onInfo(player: IMediaPlayer?, what: Int, extra: Int): Boolean {
-        Log.e("zhaow", "onInfo   $what    $extra")
-        return false
-    }
-
-    override fun onPrepared(player: IMediaPlayer?) {
-        Log.e("zhaow", "onPrepared")
     }
 }

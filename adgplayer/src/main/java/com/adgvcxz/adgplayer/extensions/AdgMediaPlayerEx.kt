@@ -1,6 +1,6 @@
 package com.adgvcxz.adgplayer.extensions
 
-import com.adgvcxz.adgplayer.AdgMediaPlayerManager
+import com.adgvcxz.adgplayer.AdgMediaPlayer
 import com.adgvcxz.adgplayer.bean.VideoInfo
 import com.adgvcxz.adgplayer.bean.VideoSize
 import io.reactivex.BackpressureStrategy
@@ -13,39 +13,39 @@ import tv.danmaku.ijk.media.player.IMediaPlayer
  * Created by zhaowei on 2017/3/13.
  */
 
-fun IMediaPlayer.videoSizeChangeRx(): Observable<VideoSize> {
+fun AdgMediaPlayer.videoSizeChangeRx(): Observable<VideoSize> {
     return Flowable.create<VideoSize>({
         val callback = IMediaPlayer.OnVideoSizeChangedListener { _, width, height, sarNum, sarDen ->
             it.onNext(VideoSize(width, height, sarNum, sarDen))
         }
-        setOnVideoSizeChangedListener(callback)
+        mediaPlayer.setOnVideoSizeChangedListener(callback)
     }, BackpressureStrategy.DROP).toObservable()
 }
 
-fun IMediaPlayer.videoPreparedRx(): Observable<Long> {
+fun AdgMediaPlayer.videoPreparedRx(): Observable<Long> {
     return Flowable.create<Long>({
         val callback = IMediaPlayer.OnPreparedListener { _ ->
-            it.onNext(AdgMediaPlayerManager.instance.duration)
+            it.onNext(mediaPlayer.duration)
         }
-        setOnPreparedListener(callback)
+        mediaPlayer.setOnPreparedListener(callback)
     }, BackpressureStrategy.DROP).toObservable()
 }
 
-fun IMediaPlayer.videoBufferRx(): Observable<Int> {
+fun AdgMediaPlayer.videoBufferRx(): Observable<Int> {
     return Flowable.create<Int>({
-        val callback = IMediaPlayer.OnBufferingUpdateListener {_, buffer ->
+        val callback = IMediaPlayer.OnBufferingUpdateListener { _, buffer ->
             it.onNext(buffer)
         }
-        setOnBufferingUpdateListener(callback)
+        mediaPlayer.setOnBufferingUpdateListener(callback)
     }, BackpressureStrategy.DROP).toObservable()
 }
 
-fun IMediaPlayer.videoInfoRx(): Observable<VideoInfo> {
+fun AdgMediaPlayer.videoInfoRx(): Observable<VideoInfo> {
     return Flowable.create<VideoInfo>({
         val callback = IMediaPlayer.OnInfoListener { _, what, extra ->
             it.onNext(VideoInfo(what, extra))
             false
         }
-        setOnInfoListener(callback)
+        mediaPlayer.setOnInfoListener(callback)
     }, BackpressureStrategy.DROP).toObservable()
 }

@@ -2,8 +2,11 @@ package com.adgvcxz.adgplayer.extensions
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
+import android.support.v7.app.AppCompatActivity
 import android.view.Surface
+import android.view.WindowManager
 import com.adgvcxz.adgplayer.ScreenOrientation
+import io.reactivex.Observable
 
 /**
  * zhaowei
@@ -12,14 +15,37 @@ import com.adgvcxz.adgplayer.ScreenOrientation
 
 fun Activity.landscape() {
     requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+    fullScreen()
 }
 
 fun Activity.portrait() {
     requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    quitFullScreen()
 }
 
 fun Activity.reverseLandscape() {
     requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE
+    fullScreen()
+}
+
+fun Activity.fullScreen() {
+    Observable.just(this).ofType(AppCompatActivity::class.java)
+            .flatMap { if (it.supportActionBar == null) Observable.empty() else Observable.just(it.supportActionBar!!) }
+            .subscribe {
+                it.setShowHideAnimationEnabled(false)
+                it.hide()
+            }
+    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+}
+
+fun Activity.quitFullScreen() {
+    Observable.just(this).ofType(AppCompatActivity::class.java)
+            .flatMap { if (it.supportActionBar == null) Observable.empty() else Observable.just(it.supportActionBar!!) }
+            .subscribe {
+                it.setShowHideAnimationEnabled(false)
+                it.show()
+            }
+    window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
 }
 
 fun Activity.screenOrientation(): ScreenOrientation {

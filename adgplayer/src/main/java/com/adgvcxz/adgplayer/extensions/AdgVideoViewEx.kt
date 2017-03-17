@@ -1,6 +1,8 @@
 package com.adgvcxz.adgplayer.extensions
 
 import android.app.Activity
+import android.view.ViewGroup
+import android.view.Window
 import com.adgvcxz.adgplayer.widget.AdgVideoView
 
 /**
@@ -8,14 +10,6 @@ import com.adgvcxz.adgplayer.widget.AdgVideoView
  * Created by zhaowei on 2017/3/12.
  */
 
-//fun AdgVideoView.horizontalScreen() {
-//    (context as Activity).landscape()
-//}
-//
-//fun AdgVideoView.verticalScreen() {
-//    (context as Activity).portrait()
-//}
-
-fun AdgVideoView.changeScreen() {
-//    if ((context as Activity).requestedOrientation)
+fun AdgVideoView.androidContentView(): ViewGroup {
+    return (context as Activity).findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
 }

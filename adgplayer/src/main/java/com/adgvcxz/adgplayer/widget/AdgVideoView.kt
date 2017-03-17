@@ -6,11 +6,12 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Log
 import android.view.Surface
 import android.view.TextureView
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.RelativeLayout
-import com.adgvcxz.adgplayer.AdgMediaPlayerManager
+import com.adgvcxz.adgplayer.AdgMediaPlayer
 import com.adgvcxz.adgplayer.PlayerStatus
 import com.adgvcxz.adgplayer.ScreenOrientation
 import com.adgvcxz.adgplayer.bean.VideoProgress
@@ -31,16 +32,18 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
     private var textureView: AdgTextureView? = null
 
     private var currentPosition: Long = 0
+    private lateinit var originParent: ViewGroup
+    private lateinit var originLayoutParams: ViewGroup.LayoutParams
 
     var duration: Long = 0
-        get() = AdgMediaPlayerManager.instance.duration
+        get() = AdgMediaPlayer.instance.mediaPlayer.duration
         private set
 
     var volume: Float = 1.0f
         set (value) {
             if (value in 0..1) {
                 field = value
-                AdgMediaPlayerManager.instance.setVolume(value, value)
+                AdgMediaPlayer.instance.mediaPlayer.setVolume(value, value)
             }
         }
 
@@ -82,64 +85,41 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
 
     var progressListener: ((VideoProgress) -> Unit)? = null
     var bufferListener: ((Int) -> Unit)? = null
-    var orientationHelper: OrientationHelper? = null
+    var orientationEnable: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                if (value) {
+                    orientationHelper.enable()
+                } else {
+                    orientationHelper.disable()
+                }
+            }
+        }
     var screenOrientation: ScreenOrientation
         get() {
-            if (orientationHelper != null) {
-                return orientationHelper!!.screenOrientation
-            }
-            return (context as Activity).screenOrientation()
+            return orientationHelper.screenOrientation
         }
         set(value) {
-            if (orientationHelper == null) {
-                orientationHelper = OrientationHelper(context as Activity)
+            orientationHelper.rotateScreen(value)
+            if (value != ScreenOrientation.Portrait) {
+                fullScreen()
+            } else {
+                quitFullScreen()
             }
-            orientationHelper?.rotateScreen(value)
         }
 
     private val progressObservable: Observable<VideoProgress> by lazy {
         Observable.interval(350, TimeUnit.MILLISECONDS)
                 .takeWhile { status == PlayerStatus.Playing }
-                .map { VideoProgress(AdgMediaPlayerManager.instance.currentPosition, duration) }
+                .map { VideoProgress(AdgMediaPlayer.instance.mediaPlayer.currentPosition, duration) }
                 .filter { currentPosition != it.progress }
                 .takeWhile { it.duration > 0 && it.progress < it.duration }
                 .doOnNext { currentPosition = it.progress }
                 .observeOn(AndroidSchedulers.mainThread())
     }
 
-    init {
-
-        AdgMediaPlayerManager.instance.initPlayer()
-
-        AdgMediaPlayerManager.instance.videoSizeChangeRx()
-                .takeWhile { status != PlayerStatus.Destroy }
-                .subscribe { textureView?.requestLayout() }
-
-        AdgMediaPlayerManager.instance.videoPreparedRx()
-                .takeWhile { status != PlayerStatus.Destroy }
-                .subscribe {
-                    status = PlayerStatus.Prepared
-                    status = PlayerStatus.Playing
-                }
-
-        AdgMediaPlayerManager.instance.videoBufferRx()
-                .takeWhile { status != PlayerStatus.Destroy }
-                .subscribe {
-                    Log.e("zhaow", "buffer   ${it}")
-                    bufferListener?.invoke(it)
-                }
-
-        AdgMediaPlayerManager.instance.videoInfoRx()
-                .takeWhile { status != PlayerStatus.Destroy }
-                .subscribe {
-                    Log.e("zhaow", "info    ${it.what}")
-                    when (it.what) {
-                        IMediaPlayer.MEDIA_INFO_BUFFERING_START -> status = PlayerStatus.Buffering
-                        IMediaPlayer.MEDIA_INFO_BUFFERING_END -> status = PlayerStatus.Playing
-                    }
-                }
-
-    }
+    private val orientationHelper: OrientationHelper by lazy { OrientationHelper(context as Activity) }
 
     constructor(context: Context) : super(context) {
         init(context)
@@ -169,7 +149,37 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
 
     fun start(url: String) {
         status = PlayerStatus.Preparing
-        AdgMediaPlayerManager.instance.prepare(context, url)
+        AdgMediaPlayer.instance.prepare(context, url)
+        initRx()
+    }
+
+    private fun initRx() {
+        AdgMediaPlayer.instance.videoSizeChangeRx()
+                .takeWhile { status != PlayerStatus.Destroy }
+                .subscribe { textureView?.requestLayout() }
+
+        AdgMediaPlayer.instance.videoPreparedRx()
+                .takeWhile { status != PlayerStatus.Destroy }
+                .subscribe {
+                    status = PlayerStatus.Prepared
+                    status = PlayerStatus.Playing
+                }
+
+        AdgMediaPlayer.instance.videoBufferRx()
+                .takeWhile { status != PlayerStatus.Destroy }
+                .map { if (it >= 94) 100 else it }
+                .subscribe {
+                    bufferListener?.invoke(it)
+                }
+
+        AdgMediaPlayer.instance.videoInfoRx()
+                .takeWhile { status != PlayerStatus.Destroy }
+                .subscribe {
+                    when (it.what) {
+                        IMediaPlayer.MEDIA_INFO_BUFFERING_START -> status = PlayerStatus.Buffering
+                        IMediaPlayer.MEDIA_INFO_BUFFERING_END -> status = PlayerStatus.Playing
+                    }
+                }
     }
 
 
@@ -180,7 +190,7 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-        AdgMediaPlayerManager.instance.setSurface(null)
+        AdgMediaPlayer.instance.mediaPlayer.setSurface(null)
         surface?.release()
         return true
     }
@@ -188,33 +198,52 @@ class AdgVideoView : RelativeLayout, TextureView.SurfaceTextureListener {
     @Suppress("NAME_SHADOWING")
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
         val `surface` = Surface(surface)
-        AdgMediaPlayerManager.instance.setSurface(surface)
+        AdgMediaPlayer.instance.mediaPlayer.setSurface(surface)
         surface.release()
     }
 
     fun pause() {
-        AdgMediaPlayerManager.instance.pause()
+        AdgMediaPlayer.instance.mediaPlayer.pause()
         status = PlayerStatus.Pause
     }
 
     fun start() {
-        AdgMediaPlayerManager.instance.start()
+        AdgMediaPlayer.instance.mediaPlayer.start()
         status = PlayerStatus.Playing
     }
 
-    fun isPlaying(): Boolean = AdgMediaPlayerManager.instance.isPlaying
+    fun isPlaying(): Boolean = AdgMediaPlayer.instance.mediaPlayer.isPlaying
 
     fun seekTo(progress: Int) {
-        //todo 会自动回退1~3秒 据说是因为缺少I帧导致的 估计是的
-        AdgMediaPlayerManager.instance.seekTo(AdgMediaPlayerManager.instance.duration * progress / 100)
+        if (status == PlayerStatus.Pause || status == PlayerStatus.Buffering || status == PlayerStatus.Playing
+                || status == PlayerStatus.Completed) {
+            if (status == PlayerStatus.Pause) {
+                start()
+            }
+            //todo 会自动回退1~3秒 据说是因为缺少I帧导致的 估计是的
+            AdgMediaPlayer.instance.mediaPlayer.seekTo(AdgMediaPlayer.instance.mediaPlayer.duration * progress / 100)
+        }
+    }
+
+    fun fullScreen() {
+//        (context as Activity).fullScreen()
+        originLayoutParams = layoutParams
+        originParent = parent as ViewGroup
+        originParent.removeView(this)
+        androidContentView().addView(this, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+    }
+
+    fun quitFullScreen() {
+        androidContentView().removeView(this)
+        originParent.addView(this, originLayoutParams)
     }
 
 
     fun onDestroy() {
         status = PlayerStatus.Release
-        AdgMediaPlayerManager.instance.release()
+        AdgMediaPlayer.instance.mediaPlayer.release()
         status = PlayerStatus.Destroy
         statusObservable.onComplete()
-        orientationHelper?.onDestroy()
+        orientationHelper.disable()
     }
 }

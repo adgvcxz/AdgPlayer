@@ -52,15 +52,15 @@ class OrientationHelper(val activity: Activity) {
         orientationListener.enable()
     }
 
+    fun disable() = orientationListener.disable()
+
+    fun enable() = orientationListener.enable()
+
     fun rotateScreen(orientation: ScreenOrientation) {
         if (orientation != screenOrientation) {
             autoRotate = orientation == ScreenOrientation.Portrait
             screenOrientation = orientation
             lastAutoRotate = false
         }
-    }
-
-    fun onDestroy() {
-        orientationListener.disable()
     }
 }
