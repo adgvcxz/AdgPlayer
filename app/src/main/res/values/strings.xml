@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">AdgPlayer</string>
     <string name="mute">静音</string>
+    <string name="quality">品质</string>
 </resources>

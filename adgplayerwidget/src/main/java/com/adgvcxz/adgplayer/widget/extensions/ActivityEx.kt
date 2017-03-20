@@ -1,11 +1,11 @@
-package com.adgvcxz.adgplayer.extensions
+package com.adgvcxz.adgplayer.widget.extensions
 
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.support.v7.app.AppCompatActivity
 import android.view.Surface
 import android.view.WindowManager
-import com.adgvcxz.adgplayer.ScreenOrientation
+import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
 import io.reactivex.Observable
 
 /**

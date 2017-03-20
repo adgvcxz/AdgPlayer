@@ -1,49 +1,62 @@
 package com.adgvcxz.example
 
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.TextView
+import com.adgvcxz.adgplayer.AdgVideoPlayer
+import com.adgvcxz.adgplayer.AdgVideoPlayerListener
 import com.adgvcxz.adgplayer.PlayerStatus
-import com.adgvcxz.adgplayer.ScreenOrientation
+import com.adgvcxz.adgplayer.bean.VideoProgress
+import com.adgvcxz.adgplayer.bean.VideoSize
+import com.adgvcxz.adgplayer.extensions.*
 import com.adgvcxz.adgplayer.widget.AdgVideoView
+import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
 
 /**
  * zhaowei
  * Created by zhaowei on 2017/3/17.
  */
 
-class SingleVideoActivity: AppCompatActivity(), SeekBar.OnSeekBarChangeListener {
+class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener, AdgVideoPlayerListener {
+
+    private val Video1 = "http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4"
+    private val Video2 = "http://baobab.wdjcdn.com/14564977406580.mp4"
+
     private lateinit var videoView: AdgVideoView
+    private lateinit var seekBar: SeekBar
+    private lateinit var time: TextView
+    private lateinit var progressBar: View
+    private var videoUrl = Video1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_single_video)
         videoView = findViewById(R.id.video_view) as AdgVideoView
         val start = findViewById(R.id.start) as Button
-        val seekBar = findViewById(R.id.seek_bar) as SeekBar
+        seekBar = findViewById(R.id.seek_bar) as SeekBar
         val brightness = findViewById(R.id.brightness) as SeekBar
-        val time = findViewById(R.id.time) as TextView
-        val progressBar = findViewById(R.id.progress_bar)
+        time = findViewById(R.id.time) as TextView
+        progressBar = findViewById(R.id.progress_bar)
+        AdgVideoPlayer.instance.init(this)
         start.setOnClickListener {
-            if (videoView.isPlaying()) {
-                videoView.pause()
+            if (AdgVideoPlayer.instance.isPlaying()) {
+                AdgVideoPlayer.instance.pause()
                 start.setText(R.string.start)
             } else {
-                videoView.start()
+                AdgVideoPlayer.instance.start()
                 start.setText(R.string.pause)
             }
         }
 
         findViewById(R.id.mute).setOnClickListener {
-            if (videoView.volume == 1F) {
-                videoView.volume = 0F
+            if (AdgVideoPlayer.instance.volume == 1F) {
+                AdgVideoPlayer.instance.volume = 0F
             } else {
-                videoView.volume = 1F
+                AdgVideoPlayer.instance.volume = 1F
             }
         }
 
@@ -55,30 +68,29 @@ class SingleVideoActivity: AppCompatActivity(), SeekBar.OnSeekBarChangeListener 
             }
         }
 
+        findViewById(R.id.quality).setOnClickListener {
+            if (Video1 == videoUrl) {
+                videoUrl = Video2
+                AdgVideoPlayer.instance.changeQuality(Video2)
+            } else {
+                videoUrl = Video1
+                AdgVideoPlayer.instance.changeQuality(Video1)
+            }
+        }
+
+        findViewById(R.id.screen).setOnClickListener {
+            videoView.orientationEnable = true
+        }
+
         seekBar.setOnSeekBarChangeListener(this)
         brightness.setOnSeekBarChangeListener(this)
-        videoView.progressListener = {
-            seekBar.progress = (it.progress.toDouble() / it.duration * 100).toInt()
-            time.text = "${it.progress / 1000}s / ${videoView.duration / 1000}s"
-        }
 
-        videoView.bufferListener = {
-            seekBar.secondaryProgress = it
-        }
+//        AdgVideoPlayer.instance.bindView(this, videoView)
+//        AdgVideoPlayer.instance.prepare("http://baobab.wdjcdn.com/14564977406580.mp4")
+        AdgVideoPlayer.instance.prepare(videoUrl)
+        brightness.progress = (AdgVideoPlayer.instance.brightness * 100).toInt()
 
-        videoView.statusObservable.subscribe {
-            if (it == PlayerStatus.Prepared) {
-                time.text = "${videoView.duration / 1000}s"
-            }
-            if (it == PlayerStatus.Buffering || it == PlayerStatus.Preparing) {
-                progressBar.visibility = View.VISIBLE
-            } else {
-                progressBar.visibility = View.GONE
-            }
-        }
-
-        videoView.start("http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4")
-        brightness.progress = (videoView.brightness * 100).toInt()
+        AdgVideoPlayer.instance.addListener(this)
 
     }
 
@@ -88,15 +100,15 @@ class SingleVideoActivity: AppCompatActivity(), SeekBar.OnSeekBarChangeListener 
 
     override fun onStartTrackingTouch(seekBar: SeekBar) {
         when (seekBar.id) {
-            R.id.brightness -> videoView.brightness = seekBar.progress.toFloat() / 100
-            R.id.progress_bar -> videoView.seekTo(seekBar.progress)
+            R.id.brightness -> AdgVideoPlayer.instance.brightness = seekBar.progress.toFloat() / 100
+            R.id.seek_bar -> AdgVideoPlayer.instance.seekTo(seekBar.progress * AdgVideoPlayer.instance.duration / 100)
         }
     }
 
     override fun onStopTrackingTouch(seekBar: SeekBar) {
         when (seekBar.id) {
-            R.id.brightness -> videoView.brightness = seekBar.progress.toFloat() / 100
-            R.id.progress_bar -> videoView.seekTo(seekBar.progress)
+            R.id.brightness -> AdgVideoPlayer.instance.brightness = seekBar.progress.toFloat() / 100
+            R.id.seek_bar -> AdgVideoPlayer.instance.seekTo(seekBar.progress * AdgVideoPlayer.instance.duration / 100)
         }
 
     }
@@ -104,6 +116,9 @@ class SingleVideoActivity: AppCompatActivity(), SeekBar.OnSeekBarChangeListener 
     override fun onDestroy() {
         super.onDestroy()
         videoView.onDestroy()
+        AdgVideoPlayer.instance.release()
+        AdgVideoPlayer.instance.removeListener(this)
+//        AdgVideoPlayer.instance.unBindView()
     }
 
     override fun onBackPressed() {
@@ -123,5 +138,29 @@ class SingleVideoActivity: AppCompatActivity(), SeekBar.OnSeekBarChangeListener 
     override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
         super.onRestoreInstanceState(savedInstanceState)
         Log.e("zhaow", "恢复  ${savedInstanceState?.getInt("a")}")
+    }
+
+    override fun onStatusChanged(status: PlayerStatus) {
+        if (status == PlayerStatus.Preparing) {
+            time.text = "${AdgVideoPlayer.instance.duration / 1000}s"
+        }
+        if (status == PlayerStatus.Buffering || status == PlayerStatus.Preparing) {
+            progressBar.visibility = View.VISIBLE
+        } else {
+            progressBar.visibility = View.GONE
+        }
+    }
+
+    override fun onVideoSizeChanged(videoSize: VideoSize) {
+
+    }
+
+    override fun onVideoBufferChanged(buffer: Int) {
+        seekBar.secondaryProgress = buffer
+    }
+
+    override fun onProgressChanged(videoProgress: VideoProgress) {
+        seekBar.progress = (videoProgress.progress.toDouble() / videoProgress.duration * 100).toInt()
+        time.text = "${videoProgress.progress / 1000}s / ${videoProgress.duration / 1000}s"
     }
 }

@@ -11,7 +11,6 @@ import io.reactivex.subjects.Subject
 enum class PlayerStatus {
     Init,
     Preparing,
-    Prepared,
     Buffering,
     Playing,
     Pause,

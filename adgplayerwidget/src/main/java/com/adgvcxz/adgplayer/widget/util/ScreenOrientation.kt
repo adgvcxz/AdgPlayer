@@ -1,4 +1,4 @@
-package com.adgvcxz.adgplayer
+package com.adgvcxz.adgplayer.widget.util
 
 /**
  * zhaowei

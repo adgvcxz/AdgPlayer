@@ -1,4 +1,4 @@
-package com.adgvcxz.adgplayer.extensions
+package com.adgvcxz.adgplayer.widget.extensions
 
 import android.app.Activity
 import android.view.ViewGroup

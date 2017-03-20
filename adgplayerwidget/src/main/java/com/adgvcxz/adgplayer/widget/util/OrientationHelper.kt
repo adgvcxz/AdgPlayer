@@ -1,12 +1,10 @@
-package com.adgvcxz.adgplayer.util
+package com.adgvcxz.adgplayer.widget.util
 
 import android.app.Activity
 import android.provider.Settings
-import android.util.Log
 import android.view.OrientationEventListener
-import com.adgvcxz.adgplayer.ScreenOrientation
-import com.adgvcxz.adgplayer.extensions.rotateScreen
-import com.adgvcxz.adgplayer.extensions.screenOrientation
+import com.adgvcxz.adgplayer.widget.extensions.rotateScreen
+import com.adgvcxz.adgplayer.widget.extensions.screenOrientation
 
 /**
  * zhaowei
@@ -30,7 +28,7 @@ class OrientationHelper(val activity: Activity) {
 
         override fun onOrientationChanged(orientation: Int) {
             if (autoRotate) {
-                if (orientation == OrientationEventListener.ORIENTATION_UNKNOWN
+                if (orientation == ORIENTATION_UNKNOWN
                         || Settings.System.getInt(activity.contentResolver, Settings.System.ACCELEROMETER_ROTATION, 0) != 1) {
                     return
                 }

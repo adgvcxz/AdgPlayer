@@ -6,7 +6,6 @@ import android.os.Build
 import android.util.AttributeSet
 import android.view.TextureView
 import android.view.View
-import com.adgvcxz.adgplayer.AdgMediaPlayer
 
 /**
  * zhaowei
@@ -14,6 +13,9 @@ import com.adgvcxz.adgplayer.AdgMediaPlayer
  */
 
 class AdgTextureView : TextureView {
+
+    internal var videoWidth: Int = 0
+    internal var videoHeight: Int = 0
 
 
     constructor(context: Context?) : super(context)
@@ -24,12 +26,9 @@ class AdgTextureView : TextureView {
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-
-        val videoWidth = AdgMediaPlayer.instance.mediaPlayer.videoWidth
-        val videoHeight = AdgMediaPlayer.instance.mediaPlayer.videoHeight
-        val width = View.getDefaultSize(videoWidth, widthMeasureSpec)
-        val height = View.getDefaultSize(videoHeight, heightMeasureSpec)
         if (videoWidth != 0 && videoHeight != 0) {
+            val width = View.getDefaultSize(videoWidth, widthMeasureSpec)
+            val height = View.getDefaultSize(videoHeight, heightMeasureSpec)
             val x = (videoWidth.toFloat()) / width
             var targetWidth = videoWidth / x
             var targetHeight = videoHeight / x
