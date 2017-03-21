@@ -48,13 +48,9 @@ fun AdgVideoPlayer.removeListener(listener: AdgVideoPlayerListener) {
     listeners.get()?.remove(listener)
 }
 
-fun AdgVideoPlayer.release() {
+fun AdgVideoPlayer.destroy() {
     status = PlayerStatus.Release
-    releaseSurface()
+    current = -1
+    isStart = false
     mainPlayer.release()
-}
-
-fun AdgVideoPlayer.releaseSurface() {
-    surface?.release()
-    mainPlayer.setDisplay(null)
 }

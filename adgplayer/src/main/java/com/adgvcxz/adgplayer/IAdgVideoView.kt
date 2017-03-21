@@ -9,8 +9,6 @@ import android.view.TextureView
 
 interface IAdgVideoView {
 
-    fun setSurfaceTextureListener(listener: TextureView.SurfaceTextureListener)
-
-    fun recreate()
+    fun getTextureView(): TextureView
 
 }

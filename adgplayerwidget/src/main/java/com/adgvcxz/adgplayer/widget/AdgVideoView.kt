@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Log
 import android.view.TextureView
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -30,6 +29,7 @@ import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
 class AdgVideoView : RelativeLayout, IAdgVideoView, AdgVideoPlayerListener {
 
     private var textureView: AdgTextureView? = null
+    private lateinit var textureViewGroup: RelativeLayout
 
     private lateinit var originParent: ViewGroup
     private lateinit var originLayoutParams: ViewGroup.LayoutParams
@@ -79,18 +79,15 @@ class AdgVideoView : RelativeLayout, IAdgVideoView, AdgVideoPlayerListener {
     }
 
     private fun init() {
-        addTextureView()
-        AdgVideoPlayer.instance.addListener(this)
-        AdgVideoPlayer.instance.bindView(this)
-    }
-
-    private fun addTextureView() {
+        textureViewGroup = RelativeLayout(context)
+        addView(textureViewGroup, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        textureViewGroup.removeAllViews()
         textureView = AdgTextureView(context)
         val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         lp.addRule(CENTER_IN_PARENT)
-        addView(textureView, lp)
+        textureViewGroup.addView(textureView, lp)
+        AdgVideoPlayer.instance.addListener(this)
     }
-
 
     fun fullScreen() {
         originLayoutParams = layoutParams
@@ -106,18 +103,13 @@ class AdgVideoView : RelativeLayout, IAdgVideoView, AdgVideoPlayerListener {
 
 
     fun onDestroy() {
-        AdgVideoPlayer.instance.unBindView()
         AdgVideoPlayer.instance.removeListener(this)
         orientationHelper.disable()
     }
 
 
-    override fun setSurfaceTextureListener(listener: TextureView.SurfaceTextureListener) {
-        textureView?.surfaceTextureListener = listener
-    }
-
-    override fun recreate() {
-        addTextureView()
+    override fun getTextureView(): TextureView {
+        return textureView as AdgTextureView
     }
 
     override fun onStatusChanged(status: PlayerStatus) {

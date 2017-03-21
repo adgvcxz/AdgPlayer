@@ -2,7 +2,6 @@ package com.adgvcxz.example
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.SeekBar
@@ -21,7 +20,7 @@ import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
  * Created by zhaowei on 2017/3/17.
  */
 
-class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener, AdgVideoPlayerListener {
+class SingleVideoActivity : BaseVideoActivity(), SeekBar.OnSeekBarChangeListener, AdgVideoPlayerListener {
 
     private val Video1 = "http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4"
     private val Video2 = "http://baobab.wdjcdn.com/14564977406580.mp4"
@@ -31,6 +30,7 @@ class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
     private lateinit var time: TextView
     private lateinit var progressBar: View
     private var videoUrl = Video1
+    private var touchSeekBar = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +41,6 @@ class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
         val brightness = findViewById(R.id.brightness) as SeekBar
         time = findViewById(R.id.time) as TextView
         progressBar = findViewById(R.id.progress_bar)
-        AdgVideoPlayer.instance.init(this)
         start.setOnClickListener {
             if (AdgVideoPlayer.instance.isPlaying()) {
                 AdgVideoPlayer.instance.pause()
@@ -85,7 +84,7 @@ class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
         seekBar.setOnSeekBarChangeListener(this)
         brightness.setOnSeekBarChangeListener(this)
 
-//        AdgVideoPlayer.instance.bindView(this, videoView)
+        AdgVideoPlayer.instance.bindView(videoView)
 //        AdgVideoPlayer.instance.prepare("http://baobab.wdjcdn.com/14564977406580.mp4")
         AdgVideoPlayer.instance.prepare(videoUrl)
         brightness.progress = (AdgVideoPlayer.instance.brightness * 100).toInt()
@@ -95,20 +94,28 @@ class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
     }
 
 
-    override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+        when (seekBar.id) {
+            R.id.brightness -> AdgVideoPlayer.instance.brightness = seekBar.progress.toFloat() / 100
+            R.id.seek_bar -> {
+                touchSeekBar = true
+                AdgVideoPlayer.instance.seekTo(seekBar.progress * AdgVideoPlayer.instance.duration / 100)
+                time.text = "${seekBar.progress * AdgVideoPlayer.instance.duration / 100 / 1000}s / ${AdgVideoPlayer.instance.duration / 1000}s"
+            }
+        }
     }
 
     override fun onStartTrackingTouch(seekBar: SeekBar) {
-        when (seekBar.id) {
-            R.id.brightness -> AdgVideoPlayer.instance.brightness = seekBar.progress.toFloat() / 100
-            R.id.seek_bar -> AdgVideoPlayer.instance.seekTo(seekBar.progress * AdgVideoPlayer.instance.duration / 100)
-        }
+
     }
 
     override fun onStopTrackingTouch(seekBar: SeekBar) {
         when (seekBar.id) {
             R.id.brightness -> AdgVideoPlayer.instance.brightness = seekBar.progress.toFloat() / 100
-            R.id.seek_bar -> AdgVideoPlayer.instance.seekTo(seekBar.progress * AdgVideoPlayer.instance.duration / 100)
+            R.id.seek_bar -> {
+                touchSeekBar = false
+                AdgVideoPlayer.instance.seekTo(seekBar.progress * AdgVideoPlayer.instance.duration / 100)
+            }
         }
 
     }
@@ -116,9 +123,7 @@ class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
     override fun onDestroy() {
         super.onDestroy()
         videoView.onDestroy()
-        AdgVideoPlayer.instance.release()
         AdgVideoPlayer.instance.removeListener(this)
-//        AdgVideoPlayer.instance.unBindView()
     }
 
     override fun onBackPressed() {
@@ -127,17 +132,6 @@ class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
         } else {
             super.onBackPressed()
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt("a", 123)
-        Log.e("zhaow", "被杀====")
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
-        super.onRestoreInstanceState(savedInstanceState)
-        Log.e("zhaow", "恢复  ${savedInstanceState?.getInt("a")}")
     }
 
     override fun onStatusChanged(status: PlayerStatus) {
@@ -160,7 +154,9 @@ class SingleVideoActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
     }
 
     override fun onProgressChanged(videoProgress: VideoProgress) {
-        seekBar.progress = (videoProgress.progress.toDouble() / videoProgress.duration * 100).toInt()
-        time.text = "${videoProgress.progress / 1000}s / ${videoProgress.duration / 1000}s"
+        if (!touchSeekBar) {
+            seekBar.progress = (videoProgress.progress.toDouble() / videoProgress.duration * 100).toInt()
+            time.text = "${videoProgress.progress / 1000}s / ${videoProgress.duration / 1000}s"
+        }
     }
 }

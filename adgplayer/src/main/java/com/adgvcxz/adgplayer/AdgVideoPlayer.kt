@@ -5,7 +5,6 @@ import android.graphics.SurfaceTexture
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Handler
-import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import com.adgvcxz.adgplayer.bean.VideoProgress
@@ -37,8 +36,8 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
     internal var listeners: WeakReference<ArrayList<AdgVideoPlayerListener>> = WeakReference(ArrayList())
     private var progressTimer: Timer? = null
     private val handler: Handler = Handler()
-    internal var surface: Surface? = null
-    private var current: Long = -1
+    internal var current: Long = -1
+    internal var isStart = false
 
 
     var status = PlayerStatus.Init
@@ -90,7 +89,13 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
 
     fun prepare(url: String) {
         if (activity?.get() != null) {
+            if (isStart) {
+                mainPlayer.release()
+                initPlayer()
+            }
+            isStart = true
             status = PlayerStatus.Preparing
+            setSurface(this.adgVideoView?.getTextureView()?.surfaceTexture)
             mainPlayer.setDataSource(activity!!.get(), Uri.parse(url))
             mainPlayer.prepareAsync()
             mainPlayer.start()
@@ -120,7 +125,6 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
     private fun initListener() {
         mainPlayer.setOnPreparedListener {
             status = PlayerStatus.Playing
-            Log.e("zhaow", "============$current")
             if (current > 0) {
                 mainPlayer.seekTo(current)
             }
@@ -157,7 +161,7 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
 
     fun bindView(adgVideoView: IAdgVideoView) {
         this.adgVideoView = adgVideoView
-        this.adgVideoView?.setSurfaceTextureListener(this)
+        this.adgVideoView?.getTextureView()?.surfaceTextureListener = this
     }
 
     fun unBindView() {
@@ -170,8 +174,8 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
                 || status == PlayerStatus.Preparing) {
             mainPlayer.release()
             initPlayer()
-            adgVideoView?.recreate()
-            this.adgVideoView?.setSurfaceTextureListener(this)
+//            this.adgVideoView?.generateTextureView()?.surfaceTextureListener = this
+            setSurface(this.adgVideoView?.getTextureView()?.surfaceTexture)
             mainPlayer.setDataSource(activity!!.get(), Uri.parse(url))
             mainPlayer.prepareAsync()
             mainPlayer.start()
@@ -193,11 +197,9 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
     }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
-
     }
 
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture?) {
-
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
@@ -207,17 +209,19 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
     }
 
     override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture?, width: Int, height: Int) {
-        var texture = surfaceTexture
-        val surface = Surface(surfaceTexture)
-        mainPlayer.setSurface(surface)
-        surface.release()
-        texture?.release()
-        texture = null
+        setSurface(surfaceTexture)
+    }
+
+    private fun setSurface(surfaceTexture: SurfaceTexture?) {
+        if (surfaceTexture != null) {
+            val surface = Surface(surfaceTexture)
+            mainPlayer.setSurface(surface)
+            surface.release()
+        }
     }
 
     inner class ProgressTimerTask : TimerTask() {
         override fun run() {
-            Log.e("zhaow", "======!!!!!!!$current")
             current = mainPlayer.currentPosition
             handler.post { listeners.get()?.map { it.onProgressChanged(VideoProgress(current, duration)) } }
         }

@@ -18,5 +18,8 @@ class MainActivity : AppCompatActivity() {
         findViewById(R.id.single_video).setOnClickListener {
             startActivity(Intent(this, SingleVideoActivity::class.java))
         }
+        findViewById(R.id.musical_ly).setOnClickListener {
+            startActivity(Intent(this, MusicalActivity::class.java))
+        }
     }
 }
