@@ -12,7 +12,7 @@ import com.adgvcxz.adgplayer.PlayerStatus
 import com.adgvcxz.adgplayer.bean.VideoProgress
 import com.adgvcxz.adgplayer.bean.VideoSize
 import com.adgvcxz.adgplayer.extensions.*
-import com.adgvcxz.adgplayer.widget.AdgVideoView
+import com.adgvcxz.adgplayer.widget.AdgBaseVideoView
 import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
 
 /**
@@ -25,7 +25,7 @@ class SingleVideoActivity : BaseVideoActivity(), SeekBar.OnSeekBarChangeListener
     private val Video1 = "http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4"
     private val Video2 = "http://baobab.wdjcdn.com/14564977406580.mp4"
 
-    private lateinit var videoView: AdgVideoView
+    private lateinit var videoView: AdgBaseVideoView
     private lateinit var seekBar: SeekBar
     private lateinit var time: TextView
     private lateinit var progressBar: View
@@ -35,7 +35,7 @@ class SingleVideoActivity : BaseVideoActivity(), SeekBar.OnSeekBarChangeListener
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_single_video)
-        videoView = findViewById(R.id.video_view) as AdgVideoView
+        videoView = findViewById(R.id.video_view) as AdgBaseVideoView
         val start = findViewById(R.id.start) as Button
         seekBar = findViewById(R.id.seek_bar) as SeekBar
         val brightness = findViewById(R.id.brightness) as SeekBar

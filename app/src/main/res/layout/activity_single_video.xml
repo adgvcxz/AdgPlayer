@@ -23,7 +23,7 @@
                 android:layout_height="1000dp"
                 android:background="#33FF0000" />
 
-            <com.adgvcxz.adgplayer.widget.AdgVideoView
+            <com.adgvcxz.adgplayer.widget.AdgBaseVideoView
                 android:id="@+id/video_view1"
                 android:layout_width="match_parent"
                 android:layout_height="200dp" />
@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="200dp">
 
-            <com.adgvcxz.adgplayer.widget.AdgVideoView
+            <com.adgvcxz.adgplayer.widget.AdgBaseVideoView
                 android:id="@+id/video_view"
                 android:layout_width="match_parent"
                 android:layout_height="200dp" />

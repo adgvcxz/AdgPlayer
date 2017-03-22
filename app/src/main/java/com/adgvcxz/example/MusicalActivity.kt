@@ -6,7 +6,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.adgvcxz.adgplayer.AdgVideoPlayer
-import com.adgvcxz.adgplayer.widget.AdgVideoView
+import com.adgvcxz.adgplayer.widget.AdgBaseVideoView
 
 /**
  * zhaowei
@@ -28,14 +28,14 @@ class MusicalActivity : BaseVideoActivity() {
     inner class MusicalAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            val view = AdgVideoView(parent.context)
+            val view = AdgBaseVideoView(parent.context)
             view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             return object : RecyclerView.ViewHolder(view) {}
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             holder.itemView.setOnClickListener {
-                AdgVideoPlayer.instance.bindView(holder.itemView as AdgVideoView)
+                AdgVideoPlayer.instance.bindView(holder.itemView as AdgBaseVideoView)
                 AdgVideoPlayer.instance.prepare("http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4")
             }
         }
