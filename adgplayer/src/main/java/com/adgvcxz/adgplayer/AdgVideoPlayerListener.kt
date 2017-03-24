@@ -16,4 +16,6 @@ interface AdgVideoPlayerListener {
     fun onVideoBufferChanged(buffer: Int)
 
     fun onProgressChanged(videoProgress: VideoProgress)
+
+    fun onVideoPrepared()
 }

@@ -22,6 +22,7 @@ import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
 
 class SingleVideoActivity : BaseVideoActivity(), SeekBar.OnSeekBarChangeListener, AdgVideoPlayerListener {
 
+
     private val Video1 = "http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4"
     private val Video2 = "http://baobab.wdjcdn.com/14564977406580.mp4"
 
@@ -158,5 +159,9 @@ class SingleVideoActivity : BaseVideoActivity(), SeekBar.OnSeekBarChangeListener
             seekBar.progress = (videoProgress.progress.toDouble() / videoProgress.duration * 100).toInt()
             time.text = "${videoProgress.progress / 1000}s / ${videoProgress.duration / 1000}s"
         }
+    }
+
+    override fun onVideoPrepared() {
+
     }
 }

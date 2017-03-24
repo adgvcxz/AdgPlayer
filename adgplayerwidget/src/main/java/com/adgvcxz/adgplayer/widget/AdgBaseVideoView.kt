@@ -28,8 +28,9 @@ import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
 
 open class AdgBaseVideoView : RelativeLayout, IAdgVideoView, AdgVideoPlayerListener {
 
+
     private var textureView: AdgTextureView? = null
-    private lateinit var textureViewGroup: RelativeLayout
+    protected lateinit var textureViewGroup: RelativeLayout
     private lateinit var originParent: ViewGroup
     private lateinit var originLayoutParams: ViewGroup.LayoutParams
     var isFullScreen = false
@@ -130,5 +131,9 @@ open class AdgBaseVideoView : RelativeLayout, IAdgVideoView, AdgVideoPlayerListe
 
     override fun onProgressChanged(videoProgress: VideoProgress) {
 
+    }
+
+    override fun onVideoPrepared() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

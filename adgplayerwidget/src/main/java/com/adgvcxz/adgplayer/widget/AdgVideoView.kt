@@ -6,21 +6,25 @@ import android.graphics.Color
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
-import android.widget.ImageView
 import com.adgvcxz.adgplayer.AdgVideoPlayer
+import com.adgvcxz.adgplayer.bean.VideoProgress
+import com.adgvcxz.adgplayer.bean.VideoSize
 import com.adgvcxz.adgplayer.extensions.isPlaying
 import com.adgvcxz.adgplayer.extensions.pause
+import com.adgvcxz.adgplayer.extensions.seekTo
 import com.adgvcxz.adgplayer.extensions.start
+import com.adgvcxz.adgplayer.widget.extensions.duration
+import com.adgvcxz.adgplayer.widget.util.OnVideoListener
 import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
+import com.adgvcxz.adgplayer.widget.views.AdgSmallBottomLayout
 
 /**
  * zhaowei
  * Created by zhaowei on 2017/3/22.
  */
-class AdgVideoView: AdgBaseVideoView {
+class AdgVideoView : AdgBaseVideoView, OnVideoListener {
 
-    private lateinit var fullScreenView: ImageView
-    private lateinit var playBtn: ImageView
+    private lateinit var smallBottomLayout: AdgSmallBottomLayout
 
 
     constructor(context: Context) : super(context) {
@@ -43,23 +47,18 @@ class AdgVideoView: AdgBaseVideoView {
     private fun initExtensionView() {
         setBackgroundColor(Color.BLACK)
         orientationEnable = true
-        View.inflate(context, R.layout.adg_include_video_view, this)
-        fullScreenView = findViewById(R.id.adg_video_fullscreen) as ImageView
-        playBtn = findViewById(R.id.adg_video_play) as ImageView
-        fullScreenView.setOnClickListener {
-            if (isFullScreen) {
-                screenOrientation = ScreenOrientation.Portrait
-            } else {
-                screenOrientation = ScreenOrientation.Landscape
-            }
-        }
-        playBtn.setOnClickListener {
-            if (AdgVideoPlayer.instance.isPlaying()) {
-                AdgVideoPlayer.instance.pause()
-                playBtn.setImageResource(R.mipmap.adg_video_play)
-            } else {
-                AdgVideoPlayer.instance.start()
-                playBtn.setImageResource(R.mipmap.adg_video_pause)
+        smallBottomLayout = AdgSmallBottomLayout(context)
+        val lp = LayoutParams(LayoutParams.MATCH_PARENT, 40 * 3)
+        lp.addRule(ALIGN_PARENT_BOTTOM)
+        addView(smallBottomLayout, lp)
+        smallBottomLayout.listener = this
+        textureViewGroup.setOnClickListener {
+            if (screenOrientation == ScreenOrientation.Portrait) {
+                if (smallBottomLayout.visibility == View.VISIBLE) {
+                    smallBottomLayout.visibility = View.GONE
+                } else {
+                    smallBottomLayout.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -70,5 +69,47 @@ class AdgVideoView: AdgBaseVideoView {
 
     fun prepare(url: String) {
         AdgVideoPlayer.instance.prepare(url)
+    }
+
+    override fun onClickPlayBtn() {
+        if (AdgVideoPlayer.instance.isPlaying()) {
+            AdgVideoPlayer.instance.pause()
+            smallBottomLayout.playBtn.setImageResource(R.mipmap.adg_video_play)
+        } else {
+            AdgVideoPlayer.instance.start()
+            smallBottomLayout.playBtn.setImageResource(R.mipmap.adg_video_pause)
+        }
+    }
+
+    override fun onClickFullScreen() {
+        if (isFullScreen) {
+            screenOrientation = ScreenOrientation.Portrait
+        } else {
+            screenOrientation = ScreenOrientation.Landscape
+        }
+    }
+
+    override fun onChangeProgress(progress: Int) {
+        AdgVideoPlayer.instance.seekTo(progress.toLong() * 1000)
+    }
+
+    override fun onVideoSizeChanged(videoSize: VideoSize) {
+        super.onVideoSizeChanged(videoSize)
+    }
+
+    override fun onVideoBufferChanged(buffer: Int) {
+        super.onVideoBufferChanged(buffer)
+    }
+
+    override fun onProgressChanged(videoProgress: VideoProgress) {
+        val current = (videoProgress.progress / 1000).toInt()
+        smallBottomLayout.setProgress(current)
+        smallBottomLayout.progress.text = current.duration()
+    }
+
+    override fun onVideoPrepared() {
+        val seconds = (AdgVideoPlayer.instance.duration / 1000).toInt()
+        smallBottomLayout.seekBar.max = seconds
+        smallBottomLayout.duration.text = seconds.duration()
     }
 }

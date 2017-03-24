@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity
 import android.view.Surface
 import android.view.WindowManager
 import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
-import io.reactivex.Observable
 
 /**
  * zhaowei
@@ -29,22 +28,18 @@ fun Activity.reverseLandscape() {
 }
 
 fun Activity.fullScreen() {
-    Observable.just(this).ofType(AppCompatActivity::class.java)
-            .flatMap { if (it.supportActionBar == null) Observable.empty() else Observable.just(it.supportActionBar!!) }
-            .subscribe {
-                it.setShowHideAnimationEnabled(false)
-                it.hide()
-            }
+    if (this is AppCompatActivity) {
+        this.supportActionBar?.setShowHideAnimationEnabled(false)
+        this.supportActionBar?.hide()
+    }
     window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
 }
 
 fun Activity.quitFullScreen() {
-    Observable.just(this).ofType(AppCompatActivity::class.java)
-            .flatMap { if (it.supportActionBar == null) Observable.empty() else Observable.just(it.supportActionBar!!) }
-            .subscribe {
-                it.setShowHideAnimationEnabled(false)
-                it.show()
-            }
+    if (this is AppCompatActivity) {
+        this.supportActionBar?.setShowHideAnimationEnabled(false)
+        this.supportActionBar?.show()
+    }
     window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
 }
 

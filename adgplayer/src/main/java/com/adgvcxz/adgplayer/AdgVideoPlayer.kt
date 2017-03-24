@@ -124,6 +124,7 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
 
     private fun initListener() {
         mainPlayer.setOnPreparedListener {
+            listeners.get()?.map { it.onVideoPrepared() }
             status = PlayerStatus.Playing
             if (current > 0) {
                 mainPlayer.seekTo(current)
