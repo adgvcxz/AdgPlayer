@@ -86,6 +86,11 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
             return value
         }
 
+    val currentPosition: Long
+        get() {
+            return mainPlayer.currentPosition
+        }
+
 
     fun prepare(url: String) {
         if (activity?.get() != null) {

@@ -13,18 +13,22 @@ import com.adgvcxz.adgplayer.extensions.isPlaying
 import com.adgvcxz.adgplayer.extensions.pause
 import com.adgvcxz.adgplayer.extensions.seekTo
 import com.adgvcxz.adgplayer.extensions.start
+import com.adgvcxz.adgplayer.widget.extensions.dimen
 import com.adgvcxz.adgplayer.widget.extensions.duration
-import com.adgvcxz.adgplayer.widget.util.OnVideoListener
+import com.adgvcxz.adgplayer.widget.extensions.seconds
+import com.adgvcxz.adgplayer.widget.util.OnSmallBottomListener
 import com.adgvcxz.adgplayer.widget.util.ScreenOrientation
+import com.adgvcxz.adgplayer.widget.views.AdgProgressLayout
 import com.adgvcxz.adgplayer.widget.views.AdgSmallBottomLayout
 
 /**
  * zhaowei
  * Created by zhaowei on 2017/3/22.
  */
-class AdgVideoView : AdgBaseVideoView, OnVideoListener {
+class AdgVideoView : AdgBaseVideoView, OnSmallBottomListener {
 
     private lateinit var smallBottomLayout: AdgSmallBottomLayout
+    private lateinit var progressLayout: AdgProgressLayout
 
 
     constructor(context: Context) : super(context) {
@@ -47,8 +51,13 @@ class AdgVideoView : AdgBaseVideoView, OnVideoListener {
     private fun initExtensionView() {
         setBackgroundColor(Color.BLACK)
         orientationEnable = true
+        initSmallBottomLayout()
+        initProgressLayout()
+    }
+
+    private fun initSmallBottomLayout() {
         smallBottomLayout = AdgSmallBottomLayout(context)
-        val lp = LayoutParams(LayoutParams.MATCH_PARENT, 40 * 3)
+        val lp = LayoutParams(LayoutParams.MATCH_PARENT, R.dimen.adg_bottom_layout_height.dimen(context))
         lp.addRule(ALIGN_PARENT_BOTTOM)
         addView(smallBottomLayout, lp)
         smallBottomLayout.listener = this
@@ -61,6 +70,14 @@ class AdgVideoView : AdgBaseVideoView, OnVideoListener {
                 }
             }
         }
+    }
+
+    private fun initProgressLayout() {
+        progressLayout = AdgProgressLayout(context)
+        val lp = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        lp.addRule(CENTER_IN_PARENT)
+        addView(progressLayout, lp)
+        progressLayout.visibility = View.GONE
     }
 
     fun bindPlayer() {
@@ -91,6 +108,8 @@ class AdgVideoView : AdgBaseVideoView, OnVideoListener {
 
     override fun onChangeProgress(progress: Int) {
         AdgVideoPlayer.instance.seekTo(progress.toLong() * 1000)
+        val seconds = AdgVideoPlayer.instance.duration.seconds()
+        progressLayout.duration.text = "${progress.duration()} / ${seconds.duration()}"
     }
 
     override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -102,14 +121,25 @@ class AdgVideoView : AdgBaseVideoView, OnVideoListener {
     }
 
     override fun onProgressChanged(videoProgress: VideoProgress) {
-        val current = (videoProgress.progress / 1000).toInt()
+        val current = videoProgress.progress.seconds()
         smallBottomLayout.setProgress(current)
         smallBottomLayout.progress.text = current.duration()
     }
 
     override fun onVideoPrepared() {
-        val seconds = (AdgVideoPlayer.instance.duration / 1000).toInt()
+        val seconds = AdgVideoPlayer.instance.duration.seconds()
         smallBottomLayout.seekBar.max = seconds
         smallBottomLayout.duration.text = seconds.duration()
+    }
+
+    override fun onStartTrackingTouch() {
+        progressLayout.visibility = View.VISIBLE
+        val progress = AdgVideoPlayer.instance.currentPosition.seconds()
+        val seconds = AdgVideoPlayer.instance.duration.seconds()
+        progressLayout.duration.text = "${progress.duration()} / ${seconds.duration()}"
+    }
+
+    override fun onStopTrackingTouch() {
+        progressLayout.visibility = View.GONE
     }
 }

@@ -3,8 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AdgPlayer.iml" filepath="$PROJECT_DIR$/AdgPlayer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/adgplayer/adgplayer.iml" filepath="$PROJECT_DIR$/adgplayer/adgplayer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/adgplayerwidget/adgplayerwidget.iml" filepath="$PROJECT_DIR$/adgplayerwidget/adgplayerwidget.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
     </modules>
   </component>
 </project>

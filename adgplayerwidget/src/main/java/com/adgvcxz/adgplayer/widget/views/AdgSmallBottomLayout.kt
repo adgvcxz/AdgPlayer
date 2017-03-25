@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import com.adgvcxz.adgplayer.widget.R
+import com.adgvcxz.adgplayer.widget.util.OnSmallBottomListener
 import com.adgvcxz.adgplayer.widget.util.OnVideoListener
 
 /**
@@ -25,8 +26,8 @@ class AdgSmallBottomLayout : LinearLayout, SeekBar.OnSeekBarChangeListener {
     internal lateinit var seekBar: SeekBar
     internal lateinit var duration: TextView
     internal lateinit var progress: TextView
-    internal var listener: OnVideoListener? = null
-    private var isTouchSeekbar = false
+    internal var listener: OnSmallBottomListener? = null
+    private var isTouchSeekBar = false
 
 
     constructor(context: Context) : super(context) {
@@ -66,24 +67,26 @@ class AdgSmallBottomLayout : LinearLayout, SeekBar.OnSeekBarChangeListener {
     }
 
     override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-        if (isTouchSeekbar) {
+        if (isTouchSeekBar) {
             listener?.onChangeProgress(progress)
         }
     }
 
     override fun onStartTrackingTouch(seekBar: SeekBar) {
-        isTouchSeekbar = true
+        listener?.onStartTrackingTouch()
+        isTouchSeekBar = true
     }
 
     override fun onStopTrackingTouch(seekBar: SeekBar) {
-        if (isTouchSeekbar) {
+        listener?.onStopTrackingTouch()
+        if (isTouchSeekBar) {
             listener?.onChangeProgress(seekBar.progress)
         }
-        isTouchSeekbar = false
+        isTouchSeekBar = false
     }
 
     fun setProgress(progress: Int) {
-        if (!isTouchSeekbar) {
+        if (!isTouchSeekBar) {
             seekBar.progress = progress
         }
     }

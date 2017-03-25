@@ -1,5 +1,6 @@
 package com.adgvcxz.adgplayer.widget.extensions
 
+import android.content.Context
 import java.text.DecimalFormat
 
 /**
@@ -16,4 +17,8 @@ fun Int.duration(): String {
         val hour = this / 3600
         return "${TimeFormat.format(hour)}:${TimeFormat.format((this - hour * 3600) / 60)}:${TimeFormat.format(this % 60)}"
     }
+}
+
+fun Int.dimen(context: Context): Int {
+    return context.resources.getDimensionPixelSize(this)
 }
