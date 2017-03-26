@@ -9,6 +9,6 @@ interface OnSmallBottomListener: OnVideoListener {
 
     fun onStartTrackingTouch()
 
-    fun onStopTrackingTouch()
+    fun onStopTrackingTouch(seconds: Int)
 
 }

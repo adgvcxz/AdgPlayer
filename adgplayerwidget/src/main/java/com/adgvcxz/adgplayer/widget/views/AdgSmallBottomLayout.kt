@@ -78,7 +78,7 @@ class AdgSmallBottomLayout : LinearLayout, SeekBar.OnSeekBarChangeListener {
     }
 
     override fun onStopTrackingTouch(seekBar: SeekBar) {
-        listener?.onStopTrackingTouch()
+        listener?.onStopTrackingTouch(seekBar.progress)
         if (isTouchSeekBar) {
             listener?.onChangeProgress(seekBar.progress)
         }

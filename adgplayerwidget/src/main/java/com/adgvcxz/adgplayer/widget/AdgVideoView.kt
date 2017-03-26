@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import com.adgvcxz.adgplayer.AdgVideoPlayer
+import com.adgvcxz.adgplayer.PlayerStatus
 import com.adgvcxz.adgplayer.bean.VideoProgress
 import com.adgvcxz.adgplayer.bean.VideoSize
 import com.adgvcxz.adgplayer.extensions.isPlaying
@@ -29,6 +30,7 @@ class AdgVideoView : AdgBaseVideoView, OnSmallBottomListener {
 
     private lateinit var smallBottomLayout: AdgSmallBottomLayout
     private lateinit var progressLayout: AdgProgressLayout
+    var status: PlayerStatus = PlayerStatus.Init
 
 
     constructor(context: Context) : super(context) {
@@ -107,9 +109,7 @@ class AdgVideoView : AdgBaseVideoView, OnSmallBottomListener {
     }
 
     override fun onChangeProgress(progress: Int) {
-        AdgVideoPlayer.instance.seekTo(progress.toLong() * 1000)
-        val seconds = AdgVideoPlayer.instance.duration.seconds()
-        progressLayout.duration.text = "${progress.duration()} / ${seconds.duration()}"
+        seekTo(progress)
     }
 
     override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -134,12 +134,44 @@ class AdgVideoView : AdgBaseVideoView, OnSmallBottomListener {
 
     override fun onStartTrackingTouch() {
         progressLayout.visibility = View.VISIBLE
+        progressLayout.durationLayout.visibility = View.VISIBLE
         val progress = AdgVideoPlayer.instance.currentPosition.seconds()
         val seconds = AdgVideoPlayer.instance.duration.seconds()
         progressLayout.duration.text = "${progress.duration()} / ${seconds.duration()}"
     }
 
-    override fun onStopTrackingTouch() {
-        progressLayout.visibility = View.GONE
+    override fun onStatusChanged(status: PlayerStatus) {
+        this.status = status
+        when (status) {
+            PlayerStatus.Buffering -> {
+                if (progressLayout.visibility == View.GONE) {
+                    progressLayout.visibility = View.VISIBLE
+                }
+                progressLayout.durationLayout.visibility = View.GONE
+            }
+            PlayerStatus.Playing -> {
+                if (progressLayout.visibility == View.VISIBLE) {
+                    progressLayout.visibility = View.GONE
+                }
+            }
+            else -> {
+            }
+        }
+    }
+
+    override fun onStopTrackingTouch(progress: Int) {
+        seekTo(progress)
+        progressLayout.durationLayout.visibility = View.GONE
+        if (status == PlayerStatus.Playing) {
+            if (progressLayout.visibility == View.VISIBLE) {
+                progressLayout.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun seekTo(progress: Int) {
+        AdgVideoPlayer.instance.seekTo(progress.toLong() * 1000)
+        val seconds = AdgVideoPlayer.instance.duration.seconds()
+        progressLayout.duration.text = "${progress.duration()} / ${seconds.duration()}"
     }
 }

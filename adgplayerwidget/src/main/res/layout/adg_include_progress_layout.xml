@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <ProgressBar
+        android:id="@+id/adg_video_progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
+
     <LinearLayout
+        android:id="@+id/adg_video_progress_duration_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="#DD000000"
@@ -26,8 +33,5 @@
 
     </LinearLayout>
 
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true" />
+
 </merge>

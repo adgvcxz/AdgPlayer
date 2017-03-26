@@ -18,6 +18,7 @@ class AdgProgressLayout : RelativeLayout {
 
     lateinit var duration: TextView
     lateinit var difference: TextView
+    lateinit var durationLayout: View
 
     constructor(context: Context) : super(context) {
         init()
@@ -40,5 +41,6 @@ class AdgProgressLayout : RelativeLayout {
         View.inflate(context, R.layout.adg_include_progress_layout, this)
         duration = findViewById(R.id.adg_video_progress_duration) as TextView
         difference = findViewById(R.id.adg_video_progress_difference) as TextView
+        durationLayout = findViewById(R.id.adg_video_progress_duration_layout)
     }
 }
