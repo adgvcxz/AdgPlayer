@@ -1,5 +1,6 @@
 package com.adgvcxz.adgplayer.extensions
 
+import android.util.Log
 import com.adgvcxz.adgplayer.AdgVideoPlayer
 import com.adgvcxz.adgplayer.AdgVideoPlayerListener
 import com.adgvcxz.adgplayer.PlayerStatus
@@ -36,16 +37,19 @@ fun AdgVideoPlayer.seekTo(progress: Long) {
 }
 
 fun AdgVideoPlayer.addListener(listener: AdgVideoPlayerListener) {
-    if (listeners.get() == null) {
-        listeners = WeakReference(ArrayList())
-    }
-    if (!listeners.get()!!.contains(listener)) {
-        listeners.get()!!.add(listener)
+    val reference = WeakReference(listener)
+    if (!listeners.contains(reference)) {
+        listeners.add(reference)
     }
 }
 
 fun AdgVideoPlayer.removeListener(listener: AdgVideoPlayerListener) {
-    listeners.get()?.remove(listener)
+    for (current in listeners) {
+        if (current.get() === listener) {
+            listeners.remove(current)
+            break
+        }
+    }
 }
 
 fun AdgVideoPlayer.destroy() {

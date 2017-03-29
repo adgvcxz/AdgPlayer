@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import com.adgvcxz.adgplayer.AdgVideoPlayer
 import com.adgvcxz.adgplayer.PlayerStatus
@@ -122,6 +123,7 @@ class AdgVideoView : AdgBaseVideoView, OnSmallBottomListener {
 
     override fun onProgressChanged(videoProgress: VideoProgress) {
         val current = videoProgress.progress.seconds()
+        Log.e("zhaow", "当前 ${videoProgress.progress}")
         smallBottomLayout.setProgress(current)
         smallBottomLayout.progress.text = current.duration()
     }

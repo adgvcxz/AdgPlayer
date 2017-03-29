@@ -14,6 +14,6 @@ class StandardVideoActivity : BaseVideoActivity() {
         setContentView(R.layout.activity_standard)
         val videoView = findViewById(R.id.video_view) as AdgVideoView
         videoView.bindPlayer()
-        videoView.prepare("http://9890.vod.myqcloud.com/9890_4e292f9a3dd011e6b4078980237cc3d3.f20.mp4")
+        videoView.prepare("http://staticfile.cxylg.com/94NWfqRSWgta-SCVideo.2.mp4")
     }
 }

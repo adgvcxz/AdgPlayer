@@ -5,6 +5,7 @@ import android.graphics.SurfaceTexture
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Handler
+import android.util.Log
 import android.view.Surface
 import android.view.TextureView
 import com.adgvcxz.adgplayer.bean.VideoProgress
@@ -33,7 +34,7 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
     internal lateinit var mainPlayer: IMediaPlayer
     private var adgVideoView: IAdgVideoView? = null
     private var activity: WeakReference<Activity>? = null
-    internal var listeners: WeakReference<ArrayList<AdgVideoPlayerListener>> = WeakReference(ArrayList())
+    internal var listeners: ArrayList<WeakReference<AdgVideoPlayerListener>> = ArrayList()
     private var progressTimer: Timer? = null
     private val handler: Handler = Handler()
     internal var current: Long = -1
@@ -43,7 +44,7 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
     var status = PlayerStatus.Init
         internal set(value) {
             field = value
-            listeners.get()?.map { it.onStatusChanged(value) }
+            listeners.map { it.get()?.onStatusChanged(value) }
             if (value == PlayerStatus.Playing) {
                 startProgressTimer()
             } else if (value == PlayerStatus.Pause || value == PlayerStatus.Completed || value == PlayerStatus.Error
@@ -129,7 +130,7 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
 
     private fun initListener() {
         mainPlayer.setOnPreparedListener {
-            listeners.get()?.map { it.onVideoPrepared() }
+            listeners.map { it.get()?.onVideoPrepared() }
             status = PlayerStatus.Playing
             if (current > 0) {
                 mainPlayer.seekTo(current)
@@ -145,14 +146,14 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
         }
 
         mainPlayer.setOnVideoSizeChangedListener { _, width, height, sarNum, sarDen ->
-            listeners.get()?.map { it.onVideoSizeChanged(VideoSize(width, height, sarNum, sarDen)) }
+            listeners.map { it.get()?.onVideoSizeChanged(VideoSize(width, height, sarNum, sarDen)) }
         }
 
         mainPlayer.setOnBufferingUpdateListener { _, buffer ->
             if (buffer >= 94) {
-                listeners.get()?.map { it.onVideoBufferChanged(100) }
+                listeners.map { it.get()?.onVideoBufferChanged(100) }
             } else {
-                listeners.get()?.map { it.onVideoBufferChanged(buffer) }
+                listeners.map { it.get()?.onVideoBufferChanged(buffer) }
             }
         }
 
@@ -198,6 +199,7 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
     }
 
     fun stopProgressTimer() {
+        Log.e("zhaow", "stopProgressTimer")
         progressTimer?.cancel()
         progressTimer = null
     }
@@ -229,7 +231,7 @@ class AdgVideoPlayer private constructor() : TextureView.SurfaceTextureListener 
     inner class ProgressTimerTask : TimerTask() {
         override fun run() {
             current = mainPlayer.currentPosition
-            handler.post { listeners.get()?.map { it.onProgressChanged(VideoProgress(current, duration)) } }
+            handler.post { listeners.map { it.get()?.onProgressChanged(VideoProgress(current, duration)) } }
         }
     }
 }
